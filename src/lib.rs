@@ -13,11 +13,7 @@ pub fn move_in_direction(direction: usize, current_location: &(i32, i32)) -> (i3
 }
 
 pub fn gcd(a: u64, b: u64) -> u64 {
-    if b == 0 {
-        a
-    } else {
-        gcd(b, a % b)
-    }
+    if b == 0 { a } else { gcd(b, a % b) }
 }
 
 pub fn lcm(a: u64, b: u64) -> u64 {
