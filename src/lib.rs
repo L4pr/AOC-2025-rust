@@ -61,14 +61,14 @@ pub fn lcm(a: u64, b: u64) -> u64 {
 }
 
 pub fn get_lines(input: &str) -> Vec<&str> {
-    input.lines().collect()
+    input.lines().collect_vec()
 }
 
 pub fn make_grid(input: &str) -> Vec<Vec<u8>> {
     input
         .lines()
-        .map(|line| line.bytes().collect())
-        .collect()
+        .map(|line| line.bytes().collect_vec())
+        .collect_vec()
 }
 
 pub fn make_grid_int(input: &str) -> Vec<Vec<u32>> {
@@ -79,7 +79,7 @@ pub fn make_grid_int(input: &str) -> Vec<Vec<u32>> {
                 .map(|b| (b - b'0') as u32)
                 .collect()
         })
-        .collect()
+        .collect_vec()
 }
 
 pub fn get_area_polygon(corners: Vec<(i32, i32)>) -> u64 {
