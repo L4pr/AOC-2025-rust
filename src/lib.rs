@@ -1,5 +1,4 @@
 use std::cmp::Ordering;
-use std::collections::VecDeque;
 use std::fmt;
 use std::ops::Index;
 use itertools::Itertools;
@@ -91,44 +90,23 @@ pub fn get_area_polygon(corners: Vec<(i32, i32)>) -> u64 {
     (sum.abs() / 2) as u64
 }
 
-pub struct PriorityQueue<T, F>
-where
-    F: Fn(&T, &T) -> Ordering,
-{
-    deque: VecDeque<T>,
-    comparator: F,
+// Priority queue
+#[derive(Copy, Clone, Eq, PartialEq)]
+pub struct State {
+    pub cost: usize,
+    pub position: (usize, usize),
 }
 
-impl<T, F> PriorityQueue<T, F>
-where
-    F: Fn(&T, &T) -> Ordering,
-{
-    pub fn new(comparator: F) -> Self {
-        Self {
-            deque: VecDeque::new(),
-            comparator,
-        }
+impl Ord for State {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other.cost.cmp(&self.cost)
+            .then_with(|| self.position.cmp(&other.position))
     }
+}
 
-    pub fn push(&mut self, value: T) {
-        let pos = self
-            .deque
-            .iter()
-            .position(|x| (self.comparator)(x, &value) == Ordering::Greater)
-            .unwrap_or(self.deque.len());
-        self.deque.insert(pos, value);
-    }
-
-    pub fn pop(&mut self) -> Option<T> {
-        self.deque.pop_front()
-    }
-
-    pub fn peek(&self) -> Option<&T> {
-        self.deque.front()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.deque.is_empty()
+impl PartialOrd for State {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 
@@ -168,6 +146,23 @@ impl<T> Grid<T> {
             return None;
         }
         Some(&self.data[y * self.width + x])
+    }
+
+    pub fn get_index(&self, x: usize, y: usize) -> Option<usize> {
+        if x < self.width && y < self.height {
+            Some(y * self.width + x)
+        } else {
+            None
+        }
+    }
+
+    pub fn set(&mut self, (x, y): (usize, usize), value: T) -> bool {
+        if x < self.width && y < self.height {
+            self.data[y * self.width + x] = value;
+            true
+        } else {
+            false
+        }
     }
 
     pub fn width(&self) -> usize { self.width }

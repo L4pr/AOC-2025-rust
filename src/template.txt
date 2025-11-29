@@ -1,3 +1,5 @@
+use advent_of_code::*;
+
 advent_of_code::solution!(%DAY_NUMBER%);
 
 pub fn part_one(input: &str) -> Option<u64> {
