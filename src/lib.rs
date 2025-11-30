@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::fmt;
 use std::ops::Index;
-use itertools::Itertools;
+pub use itertools::Itertools;
 
 pub mod template;
 

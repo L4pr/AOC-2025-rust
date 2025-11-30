@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 use advent_of_code::*;
 
 advent_of_code::solution!(%DAY_NUMBER%);
