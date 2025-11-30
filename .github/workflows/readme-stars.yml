@@ -1,6 +1,9 @@
 name: Update readme ⭐️ progress
 
 on:
+    push:
+        branches:
+            - main
     # !Please set a different minute than 51 if you enable this!
     schedule:
         - cron: "46 */6 * * *" # Every 6 hours
