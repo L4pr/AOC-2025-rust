@@ -59,6 +59,14 @@ pub fn lcm(a: u64, b: u64) -> u64 {
     (a * b) / gcd(a, b)
 }
 
+pub fn fast_parse(bytes: &[u8]) -> i32 {
+    let mut n = 0;
+    for &b in bytes {
+        n = n * 10 + (b - b'0') as i32;
+    }
+    n
+}
+
 pub fn get_lines(input: &str) -> Vec<&str> {
     input.lines().collect_vec()
 }
