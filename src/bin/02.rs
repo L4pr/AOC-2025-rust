@@ -1,65 +1,87 @@
 #![allow(unused_imports)]
+
+use std::collections::HashSet;
 use advent_of_code::*;
 
 advent_of_code::solution!(2);
 
 pub fn part_one(input: &str) -> Option<u64> {
-    let ranges = input.split(',').map(|range| {
-        let (start, end) = range.split('-').collect_tuple().unwrap();
-        (start.parse::<u64>().unwrap(), end.parse::<u64>().unwrap())
-    }).collect_vec();
+    let ranges = parse_ranges(input);
     let mut result = 0;
-    for range in ranges {
-        for number in range.0..=range.1 {
-            if is_invalid(&number.to_string()) {
-                result += number;
+
+    for (start, end) in ranges {
+        let start_len = start.checked_ilog10().unwrap() + 1;
+        let end_len = end.checked_ilog10().unwrap() + 1;
+
+        for len in start_len..=end_len {
+            if len & 1 != 0 { continue }
+
+            let seed_len = len / 2;
+            let shift = 10_u64.pow(len - seed_len);
+            let min_seed = if len == start_len { start / shift } else { 10_u64.pow(seed_len - 1) };
+            let max_seed = if len == end_len { end / shift } else { 10_u64.pow(seed_len) - 1 };
+            let multiplier = 10_u64.pow(seed_len);
+
+            for seed in min_seed..=max_seed {
+                let candidate = seed * multiplier + seed;
+
+                if candidate >= start && candidate <= end {
+                    result += candidate;
+                }
             }
         }
     }
     Some(result)
-}
-
-fn is_invalid(number: &str) -> bool {
-    if !number.len().is_multiple_of(2) {
-        return false;
-    }
-    let parts = number.split_at(number.len() / 2);
-    if  parts.0 == parts.1 {
-        return true;
-    }
-    false
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    let ranges = input.split(',').map(|range| {
-        let (start, end) = range.split('-').collect_tuple().unwrap();
-        (start.parse::<u64>().unwrap(), end.parse::<u64>().unwrap())
-    }).collect_vec();
-    let mut result = 0;
-    for range in ranges {
-        for number in range.0..=range.1 {
-            if part2_is_invalid(&number.to_string()) {
-                result += number;
+    let ranges = parse_ranges(input);
+
+    let mut found_numbers = Vec::with_capacity(1000);
+
+    for (start, end) in ranges {
+        let start_len = start.checked_ilog10().unwrap() + 1;
+        let end_len = end.checked_ilog10().unwrap() + 1;
+
+        for len in start_len..=end_len {
+            for k in 2..=len {
+                if len % k != 0 { continue }
+
+                let seed_len = len / k;
+                let shift = 10_u64.pow(len - seed_len);
+                let min_seed = if len == start_len { start / shift } else { 10_u64.pow(seed_len - 1) };
+                let max_seed = if len == end_len { end / shift } else { 10_u64.pow(seed_len) - 1 };
+                let multiplier = 10_u64.pow(seed_len);
+
+                for seed in min_seed..=max_seed {
+                    let mut candidate = seed;
+                    for _ in 1..k {
+                        candidate = candidate * multiplier + seed;
+                    }
+
+                    if candidate >= start && candidate <= end {
+                        found_numbers.push(candidate);
+                    }
+                }
             }
         }
     }
-    Some(result)
+
+    found_numbers.sort_unstable();
+    found_numbers.dedup();
+
+    Some(found_numbers.iter().sum())
 }
 
-fn part2_is_invalid(number: &str) -> bool {
-    let len = number.len();
-
-    for k in 2..=len {
-        if len % k == 0 {
-            let chunk_size = len / k;
-            let pattern = &number.as_bytes()[..chunk_size];
-
-            if number.as_bytes().chunks(chunk_size).all(|chunk| chunk == pattern) {
-                return true;
-            }
-        }
-    }
-    false
+#[inline(always)]
+fn parse_ranges(input: &str) -> Vec<(u64, u64)> {
+    input.split(',')
+        .filter(|s| !s.is_empty())
+        .map(|range| {
+            let (start, end) = range.trim().split_once('-').unwrap();
+            (start.parse::<u64>().unwrap(), end.parse::<u64>().unwrap())
+        })
+        .collect()
 }
 
 #[cfg(test)]
