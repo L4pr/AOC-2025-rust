@@ -1,52 +1,38 @@
 #![allow(unused_imports)]
+
+use std::cmp::max;
+use std::thread::current;
 use advent_of_code::*;
 
 advent_of_code::solution!(3);
 
+#[allow(clippy::needless_range_loop)]
 pub fn part_one(input: &str) -> Option<u64> {
-    let lines = get_lines(input);
+    let result: u64 = input
+        .lines()
+        .map(|line| {
+            let digits= line.as_bytes();
 
-    let mut result = 0;
-    for line in lines {
-        let mut joltage = 0;
-        let mut bytes= line.as_bytes().to_vec();
-        let mut first_location = 0;
-        for i in (b'1'..=b'9').rev() {
-            if let Some(location) = &bytes.iter().position(|element| *element == i) {
-                let mut number = i;
-                if *location == bytes.len() - 1 {
-                    for j in (b'1'..i).rev() {
-                        if let Some(location2) = &bytes.iter().position(|element| *element == j) {
-                            number = j;
-                            for byte in 0..=*location2 {
-                                bytes[byte] = 0;
-                            }
-                            first_location = *location2;
-                            break;
-                        }
-                    }
-                } else {
-                    for byte in 0..=*location {
-                        bytes[byte] = 0;
-                    }
-                    first_location = *location;
+            let length = digits.len();
+
+            let mut max_digit1 = digits[0];
+            let mut max_digit1_pos = 0;
+            for i in 1..length - 1 {
+                let current_digit = digits[i];
+                if current_digit > max_digit1 {
+                    max_digit1 = current_digit;
+                    max_digit1_pos = i;
                 }
-                joltage = number - b'0';
-                break;
             }
-        }
 
-        if let Some(location) = &bytes.iter().position_max() {
-            let max_number = &bytes.iter().max().unwrap();
-            if *location < first_location {
-                joltage += (**max_number - b'0') * 10;
-            } else {
-                joltage *= 10;
-                joltage += **max_number - b'0';
+            let mut max_digit2 = digits[max_digit1_pos + 1];
+            for i in max_digit1_pos + 2..length {
+                max_digit2 = max(max_digit2, digits[i]);
             }
-        }
-        result += joltage as u64;
-    }
+
+            (max_digit1 - b'0') as u64 * 10 + (max_digit2 - b'0') as u64
+        })
+        .sum();
 
     Some(result)
 }
