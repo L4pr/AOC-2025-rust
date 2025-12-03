@@ -8,10 +8,10 @@ advent_of_code::solution!(3);
 
 #[allow(clippy::needless_range_loop)]
 pub fn part_one(input: &str) -> Option<u64> {
-    let result: u64 = input
+    Some(input
         .lines()
         .map(|line| {
-            let digits= line.as_bytes();
+            let digits = line.as_bytes();
 
             let length = digits.len();
 
@@ -30,48 +30,42 @@ pub fn part_one(input: &str) -> Option<u64> {
                 max_digit2 = max(max_digit2, digits[i]);
             }
 
-            (max_digit1 - b'0') as u64 * 10 + (max_digit2 - b'0') as u64
+            ((max_digit1 - b'0') * 10 + (max_digit2 - b'0')) as u64
         })
-        .sum();
-
-    Some(result)
+        .sum())
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
-    let lines = get_lines(input);
-    let mut result = 0;
+    let result = input
+        .lines()
+        .map(|line| {
+            let bytes= line.as_bytes();
 
-    for line in lines {
-        let bytes= line.as_bytes().to_vec();
-        let mut to_remove = bytes.len() - 12;
-        let mut stack: Vec<u8> = Vec::new();
-        let mut start_pos = 0;
-        let max = bytes.iter().max().unwrap();
-        let max_pos = bytes.iter().position(|b| b == max).unwrap();
-        if bytes.len() - max_pos > 12 {
-            start_pos = max_pos;
-            to_remove -= start_pos;
-        }
-        for &digit in bytes.iter().skip(start_pos) {
-            while let Some(&last) = stack.last() {
-                if to_remove > 0 && digit > last {
-                    stack.pop();
-                    to_remove -= 1;
-                } else {
-                    break;
+            let mut numbers: [u8; 12] = [0; 12];
+            let length = bytes.len();
+
+            let mut position = 0;
+
+            for i in 0..12 {
+                let last_valid_index = length - (12 - i);
+                for j in position..=last_valid_index {
+                    if bytes[j] > numbers[i] {
+                        numbers[i] = bytes[j];
+                        position = j + 1;
+                        if bytes[j] == b'9' {
+                            break;
+                        }
+                    }
                 }
             }
-            stack.push(digit);
-        }
 
-        stack.truncate(12);
-
-        let mut number = 0;
-        for byte in stack {
-            number = number * 10 + (byte - b'0') as u64;
-        }
-        result += number;
-    }
+            let mut number = 0;
+            for byte in numbers {
+                number = number * 10 + (byte - b'0') as u64;
+            }
+            number
+        })
+        .sum();
 
     Some(result)
 }
