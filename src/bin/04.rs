@@ -62,7 +62,7 @@ fn process_grid(input: &str) -> Vec<Vec<u8>> {
 }
 
 #[inline(always)]
-fn count_neighbors_with_mask(grid: &Vec<Vec<u8>>, r: usize, c: usize, mask: u8) -> usize {
+fn count_neighbors_with_mask(grid: &[Vec<u8>], r: usize, c: usize, mask: u8) -> usize {
     Dir::ALL_WITH_DIAGONALS.iter()
         .map(|&dir| move_in_direction(dir, &(r as isize, c as isize)))
         .filter(|&(k0, k1)| {
