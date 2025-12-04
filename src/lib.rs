@@ -167,8 +167,8 @@ impl PartialOrd for State {
 
 #[derive(Debug, Clone)]
 pub struct Grid<T> {
-    width: usize,
-    height: usize,
+    pub width: usize,
+    pub height: usize,
     data: Vec<T>,
 }
 
@@ -210,6 +210,10 @@ impl<T> Grid<T> {
             None
         }
     }
+    
+    pub fn get_isize(&self, x: isize, y: isize) -> &T {
+        &self.data[(y * self.width as isize + x) as usize]
+    }
 
     pub fn set(&mut self, (x, y): (usize, usize), value: T) -> bool {
         if x < self.width && y < self.height {
@@ -223,24 +227,39 @@ impl<T> Grid<T> {
     pub fn width(&self) -> usize { self.width }
     pub fn height(&self) -> usize { self.height }
 
-    pub fn neighbors(&self, x: usize, y: usize) -> impl Iterator<Item = (usize, usize)> + '_ {
+    pub fn neighbors_locations(&self, x: usize, y: usize) -> impl Iterator<Item = (usize, usize)> + '_ {
         Dir::ALL.iter().filter_map(move |&dir| {
             self.step(x, y, dir)
         })
     }
 
-    pub fn neighbors_with_diagonals(&self, x: usize, y: usize) -> impl Iterator<Item = (usize, usize)> + '_ {
+    pub fn neighbors_with_diagonals_locations(&self, x: usize, y: usize) -> impl Iterator<Item = (usize, usize)> + '_ {
         Dir::ALL_WITH_DIAGONALS.iter().filter_map(move |&dir| {
             self.step(x, y, dir)
         })
     }
 
-    pub fn neighbors_with_dir(&self, x: usize, y: usize) -> impl Iterator<Item = (Dir, (usize, usize))> + '_ {
+    pub fn neighbors_with_dir_locations(&self, x: usize, y: usize) -> impl Iterator<Item = (Dir, (usize, usize))> + '_ {
         Dir::ALL.iter().filter_map(move |&dir| {
             self.step(x, y, dir).map(|coord| (dir, coord))
         })
     }
 
+    pub fn neighbors(&self, x: usize, y: usize) -> impl Iterator<Item = &T> + '_ {
+        self.neighbors_locations(x, y)
+            .filter_map(move |(nx, ny)| {
+                self.get(nx, ny)
+            })
+    }
+
+    pub fn neighbors_with_diagonals(&self, x: usize, y: usize) -> impl Iterator<Item = &T> + '_ {
+        self.neighbors_with_diagonals_locations(x, y)
+            .filter_map(move |(nx, ny)| {
+                self.get(nx, ny)
+            })
+    }
+
+    #[inline(always)]
     pub fn step(&self, x: usize, y: usize, dir: Dir) -> Option<(usize, usize)> {
         let (dx, dy) = dir.delta();
 
