@@ -35,6 +35,8 @@ pub fn part_one(input: &str) -> Option<u64> {
         .sum())
 }
 
+#[allow(clippy::needless_range_loop)]
+#[allow(clippy::mut_range_bound)]
 pub fn part_two(input: &str) -> Option<u64> {
     let result = input
         .lines()
@@ -47,8 +49,8 @@ pub fn part_two(input: &str) -> Option<u64> {
             let mut position = 0;
 
             for i in 0..12 {
-                let last_valid_index = length - (12 - i);
-                for j in position..=last_valid_index {
+                let last_valid_index = length - (11 - i);
+                for j in position..last_valid_index {
                     if bytes[j] > numbers[i] {
                         numbers[i] = bytes[j];
                         position = j + 1;

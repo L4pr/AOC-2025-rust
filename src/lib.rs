@@ -8,40 +8,87 @@ pub mod template;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Dir {
     Up,
-    Down,
-    Left,
+    UpRight,
     Right,
+    DownRight,
+    Down,
+    DownLeft,
+    Left,
+    UpLeft,
 }
 
 impl Dir {
     pub fn delta(&self) -> (isize, isize) {
         match self {
-            Dir::Up => (0, -1),
-            Dir::Down => (0, 1),
-            Dir::Left => (-1, 0),
-            Dir::Right => (1, 0),
+            Dir::Up        => ( 0, -1),
+            Dir::UpRight   => ( 1, -1),
+            Dir::Right     => ( 1,  0),
+            Dir::DownRight => ( 1,  1),
+            Dir::Down      => ( 0,  1),
+            Dir::DownLeft  => (-1,  1),
+            Dir::Left      => (-1,  0),
+            Dir::UpLeft    => (-1, -1),
         }
     }
 
     pub fn turn_right(&self) -> Self {
         match self {
-            Dir::Up => Dir::Right,
-            Dir::Right => Dir::Down,
-            Dir::Down => Dir::Left,
-            Dir::Left => Dir::Up,
+            Dir::Up        => Dir::Right,
+            Dir::UpRight   => Dir::DownRight,
+            Dir::Right     => Dir::Down,
+            Dir::DownRight => Dir::DownLeft,
+            Dir::Down      => Dir::Left,
+            Dir::DownLeft  => Dir::UpLeft,
+            Dir::Left      => Dir::Up,
+            Dir::UpLeft    => Dir::UpRight,
         }
     }
 
     pub fn turn_left(&self) -> Self {
         match self {
-            Dir::Up => Dir::Left,
-            Dir::Left => Dir::Down,
-            Dir::Down => Dir::Right,
-            Dir::Right => Dir::Up,
+            Dir::Up        => Dir::Left,
+            Dir::UpRight   => Dir::UpLeft,
+            Dir::Right     => Dir::Up,
+            Dir::DownRight => Dir::UpRight,
+            Dir::Down      => Dir::Right,
+            Dir::DownLeft  => Dir::DownRight,
+            Dir::Left      => Dir::Down,
+            Dir::UpLeft    => Dir::DownLeft,
+        }
+    }
+
+    pub fn turn_45_right(&self) -> Self {
+        match self {
+            Dir::Up        => Dir::UpRight,
+            Dir::UpRight   => Dir::Right,
+            Dir::Right     => Dir::DownRight,
+            Dir::DownRight => Dir::Down,
+            Dir::Down      => Dir::DownLeft,
+            Dir::DownLeft  => Dir::Left,
+            Dir::Left      => Dir::UpLeft,
+            Dir::UpLeft    => Dir::Up,
+        }
+    }
+
+    pub fn turn_45_left(&self) -> Self {
+        match self {
+            Dir::Up        => Dir::UpLeft,
+            Dir::UpRight   => Dir::Up,
+            Dir::Right     => Dir::UpRight,
+            Dir::DownRight => Dir::Right,
+            Dir::Down      => Dir::DownRight,
+            Dir::DownLeft  => Dir::Down,
+            Dir::Left      => Dir::DownLeft,
+            Dir::UpLeft    => Dir::Left,
         }
     }
 
     pub const ALL: [Dir; 4] = [Dir::Up, Dir::Down, Dir::Left, Dir::Right];
+
+    pub const ALL_WITH_DIAGONALS: [Dir; 8] = [
+        Dir::Up, Dir::UpRight, Dir::Right, Dir::DownRight,
+        Dir::Down, Dir::DownLeft, Dir::Left, Dir::UpLeft
+    ];
 }
 
 pub fn move_in_direction(direction: Dir, current_location: &(isize, isize)) -> (isize, isize) {
@@ -178,6 +225,12 @@ impl<T> Grid<T> {
 
     pub fn neighbors(&self, x: usize, y: usize) -> impl Iterator<Item = (usize, usize)> + '_ {
         Dir::ALL.iter().filter_map(move |&dir| {
+            self.step(x, y, dir)
+        })
+    }
+
+    pub fn neighbors_with_diagonals(&self, x: usize, y: usize) -> impl Iterator<Item = (usize, usize)> + '_ {
+        Dir::ALL_WITH_DIAGONALS.iter().filter_map(move |&dir| {
             self.step(x, y, dir)
         })
     }
