@@ -21,15 +21,15 @@ pub fn part_one(input: &str) -> Option<u64> {
             let mut split_point_found = false;
             let mut number1 = 0;
             let mut number2 = 0;
-            for i in 0..bytes.len() {
-                if bytes[i] == b'-' {
+            for &b in bytes {
+                if b == b'-' {
                     split_point_found = true;
                     continue;
                 }
                 if !split_point_found {
-                    number1 = number1 * 10 + (bytes[i] - b'0') as u64
+                    number1 = number1 * 10 + (b - b'0') as u64
                 } else {
-                    number2 = number2 * 10 + (bytes[i] - b'0') as u64
+                    number2 = number2 * 10 + (b - b'0') as u64
                 }
             }
             ranges.push((number1, number2));
@@ -65,10 +65,22 @@ pub fn part_one(input: &str) -> Option<u64> {
 
     let mut result = 0;
     for id in ids {
-        for range in &new_ranges {
-            if id >= range.0 && id <= range.1 {
+        let mut low = 0;
+        let mut high = new_ranges.len() - 1;
+
+        while low <= high {
+            let mid = low + (high - low) / 2;
+            let mid_val = new_ranges[mid];
+
+
+            if id >= mid_val.0 && id <= mid_val.1 {
                 result += 1;
                 break;
+            } else if mid_val.1 < id {
+                low = mid + 1;
+            } else {
+                if mid == 0 { break; }
+                high = mid - 1;
             }
         }
     }
