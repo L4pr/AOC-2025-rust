@@ -72,7 +72,6 @@ pub fn part_one(input: &str) -> Option<u64> {
             let mid = low + (high - low) / 2;
             let mid_val = new_ranges[mid];
 
-
             if id >= mid_val.0 && id <= mid_val.1 {
                 result += 1;
                 break;
