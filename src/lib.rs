@@ -1,4 +1,4 @@
-use std::cmp::Ordering;
+use std::cmp::{max, Ordering};
 use std::fmt;
 use std::ops::Index;
 pub use itertools::Itertools;
@@ -112,6 +112,31 @@ pub fn fast_parse(bytes: &[u8]) -> i32 {
         n = n * 10 + (b - b'0') as i32;
     }
     n
+}
+
+#[inline(always)]
+pub fn merge_ranges(ranges: &mut Vec<(u64, u64)>) -> Vec<(u64, u64)> {
+    let mut new_ranges: Vec<(u64, u64)> = Vec::new();
+
+    ranges.sort_by_key(|r| r.0);
+
+    for range in ranges {
+        if new_ranges.is_empty() {
+            new_ranges.push((range.0, range.1));
+            continue;
+        }
+
+        let last_index = new_ranges.len() - 1;
+        let last_range = &mut new_ranges[last_index];
+
+        if range.0 <= last_range.1 + 1 {
+            last_range.1 = max(last_range.1, range.1);
+        } else {
+            new_ranges.push((range.0, range.1));
+        }
+    }
+
+    new_ranges
 }
 
 pub fn get_lines(input: &str) -> Vec<&str> {

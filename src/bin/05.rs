@@ -43,16 +43,35 @@ pub fn part_one(input: &str) -> Option<u64> {
         }
     }
 
+    let mut new_ranges: Vec<(u64, u64)> = Vec::new();
+
+    ranges.sort_by_key(|r| r.0);
+
+    for range in &ranges {
+        if new_ranges.is_empty() {
+            new_ranges.push((range.0, range.1));
+            continue;
+        }
+
+        let last_index = new_ranges.len() - 1;
+        let last_range = &mut new_ranges[last_index];
+
+        if range.0 <= last_range.1 + 1 {
+            last_range.1 = max(last_range.1, range.1);
+        } else {
+            new_ranges.push((range.0, range.1));
+        }
+    }
+
     let mut result = 0;
     for id in ids {
-        for range in &ranges {
+        for range in &new_ranges {
             if id >= range.0 && id <= range.1 {
                 result += 1;
                 break;
             }
         }
     }
-
 
     Some(result)
 }
