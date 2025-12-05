@@ -88,6 +88,7 @@ pub fn part_one(input: &str) -> Option<u64> {
     Some(result)
 }
 
+#[allow(clippy::needless_range_loop)]
 pub fn part_two(input: &str) -> Option<u64> {
     let mut ranges = Vec::new();
     for line in input.lines() {
