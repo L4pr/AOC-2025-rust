@@ -7,53 +7,52 @@ advent_of_code::solution!(6);
 
 pub fn part_one(input: &str) -> Option<u64> {
     let lines = get_lines(input);
-    let mut results: Vec<u64> = Vec::new();
 
-    let operations = lines[lines.len() - 1].split_whitespace().collect_vec();
+    let operations = lines[lines.len() - 1].split_ascii_whitespace().collect_vec();
     let length = operations.len();
+    let mut results: Vec<u64> = Vec::with_capacity(length);
 
     for line_idx in 0..lines.len() - 1 {
         if line_idx == 0 {
-            lines[line_idx].split_whitespace()
-                .for_each(|num_str| results.push(num_str.parse::<u64>().unwrap()));
+            lines[line_idx]
+                .split_ascii_whitespace()
+                .for_each(|num_str| results.push(fast_parse_u64(num_str.as_bytes())));
             continue;
         }
-        let line_split = lines[line_idx].split_whitespace().map(|str| str.parse::<u64>().unwrap()).collect_vec();
-        for i in 0..length {
-            if operations[i] == "+" {
-                results[i] += line_split[i];
+        lines[line_idx]
+            .split_whitespace()
+            .map(|str| fast_parse_u64(str.as_bytes()))
+            .enumerate()
+            .for_each({|(idx, num)|
+            if operations[idx] == "+" {
+                results[idx] += num;
             } else {
-                results[i] *= line_split[i];
+                results[idx] *= num;
             }
-        }
+        });
     }
 
-    let mut result = 0;
-    for num in results {
-        result += num;
-    }
-
-    Some(result)
+    Some(results.iter().sum())
 }
 
 pub fn part_two(input: &str) -> Option<u64> {
     let lines = get_lines(input);
-    let mut all_numbers: Vec<Vec<u64>> = Vec::new();
 
-    let operations = lines[lines.len() - 1].split_whitespace().collect_vec();
+    let mut operations = Vec::new();
     let mut left_indexes = Vec::new();
-    let bytes = lines[lines.len() - 1].as_bytes();
+    let lines_length = lines.len() - 1;
+
+    let bytes = lines[lines_length].as_bytes();
     let mut byte_length = bytes.len();
     for i in 0..byte_length {
         let byte = bytes[i];
         if byte != b' ' {
             left_indexes.push(i);
-            all_numbers.push(Vec::new())
+            operations.push(byte);
         }
     }
 
     let mut lines_bytes = Vec::new();
-    let lines_length = lines.len() - 1;
     for line_idx in 0..lines_length {
         let line_bytes = lines[line_idx].as_bytes();
         lines_bytes.push(line_bytes);
@@ -61,6 +60,7 @@ pub fn part_two(input: &str) -> Option<u64> {
     }
     left_indexes.push(byte_length + 1);
 
+    let mut results = Vec::new();
     let mut current_column = 0;
     for i in 0..byte_length {
         if i == left_indexes[current_column + 1] - 1 {
@@ -78,33 +78,20 @@ pub fn part_two(input: &str) -> Option<u64> {
                 num = num * 10 + (byte - b'0') as u64;
             }
         }
-        all_numbers[current_column].push(num);
-    }
-
-    let mut results = Vec::new();
-
-    for i in 0..all_numbers.len() {
-        if operations[i] == "+" {
-            let mut number = 0;
-            for n in &all_numbers[i] {
-                number += n;
+        if operations[current_column] == b'+' {
+            if i == left_indexes[current_column] {
+                results.push(num);
+            } else {
+                results[current_column] += num;
             }
-            results.push(number);
+        } else if i == left_indexes[current_column] {
+            results.push(num);
         } else {
-            let mut number = 1;
-            for n in &all_numbers[i] {
-                number *= n;
-            }
-            results.push(number);
+            results[current_column] *= num;
         }
     }
 
-    let mut result = 0;
-    for num in results {
-        result += num;
-    }
-
-    Some(result)
+    Some(results.iter().sum())
 }
 
 #[cfg(test)]

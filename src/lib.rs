@@ -114,6 +114,14 @@ pub fn fast_parse(bytes: &[u8]) -> i32 {
     n
 }
 
+pub fn fast_parse_u64(bytes: &[u8]) -> u64 {
+    let mut n = 0;
+    for &b in bytes {
+        n = n * 10 + (b - b'0') as u64;
+    }
+    n
+}
+
 #[inline(always)]
 pub fn merge_ranges(ranges: &mut Vec<(u64, u64)>) -> Vec<(u64, u64)> {
     let mut new_ranges: Vec<(u64, u64)> = Vec::new();
