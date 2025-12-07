@@ -38,21 +38,23 @@ pub fn part_one(input: &str) -> Option<u64> {
 pub fn part_two(input: &str) -> Option<u64> {
     let grid = input.lines().map(|line| line.as_bytes()).collect_vec();
     let initial_state = (0_usize, grid[0].len() / 2);
-    let mut library: HashMap<(usize, usize), u64> = HashMap::new();
+
+    let mut library = vec![vec![0; grid[0].len()]; grid.len()];
 
     Some(do_part_two(&grid, initial_state, &mut library))
 }
 
-fn do_part_two(grid: &Vec<&[u8]>, position: (usize, usize), library: &mut HashMap<(usize, usize), u64>) -> u64 {
+fn do_part_two(grid: &Vec<&[u8]>, position: (usize, usize), library: &mut Vec<Vec<u64>>) -> u64 {
     if position.0 == grid.len() - 1 {
         return 1;
     }
-    if let Some(library_timelines) = library.get(&position) {
-        return *library_timelines;
+    let library_timelines = library[position.0][position.1];
+    if library_timelines != 0 {
+        return library_timelines;
     }
     if grid[position.0][position.1] == b'^' {
         let timeline_amount = do_part_two(grid, (position.0, position.1 - 1), library) + do_part_two(grid, (position.0, position.1 + 1), library);
-        library.insert(position, timeline_amount);
+        library[position.0][position.1] = timeline_amount;
         return timeline_amount;
     }
     let timeline_amount = do_part_two(grid, (position.0 + 1, position.1), library);
