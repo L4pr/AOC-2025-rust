@@ -48,12 +48,12 @@ fn do_part_two(grid: &Vec<&[u8]>, position: (usize, usize), library: &mut Vec<Ve
     if position.0 == grid.len() - 1 {
         return 1;
     }
-    let library_timelines = library[position.0][position.1];
-    if library_timelines != 0 {
-        return library_timelines;
-    }
     if grid[position.0][position.1] == b'^' {
-        let timeline_amount = do_part_two(grid, (position.0, position.1 - 1), library) + do_part_two(grid, (position.0, position.1 + 1), library);
+        let library_timelines = library[position.0][position.1];
+        if library_timelines != 0 {
+            return library_timelines;
+        }
+        let timeline_amount = do_part_two(grid, (position.0 + 1, position.1 - 1), library) + do_part_two(grid, (position.0 + 1, position.1 + 1), library);
         library[position.0][position.1] = timeline_amount;
         return timeline_amount;
     }
