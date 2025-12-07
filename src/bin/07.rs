@@ -44,6 +44,7 @@ pub fn part_two(input: &str) -> Option<u64> {
     Some(do_part_two(&grid, initial_state, &mut library))
 }
 
+#[inline(always)]
 fn do_part_two(grid: &Vec<&[u8]>, position: (usize, usize), library: &mut Vec<Vec<u64>>) -> u64 {
     if position.0 == grid.len() - 1 {
         return 1;
