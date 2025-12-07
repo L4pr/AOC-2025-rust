@@ -57,8 +57,7 @@ fn do_part_two(grid: &Vec<&[u8]>, position: (usize, usize), library: &mut Vec<Ve
         library[position.0][position.1] = timeline_amount;
         return timeline_amount;
     }
-    let timeline_amount = do_part_two(grid, (position.0 + 1, position.1), library);
-    timeline_amount
+    do_part_two(grid, (position.0 + 1, position.1), library)
 }
 
 #[cfg(test)]

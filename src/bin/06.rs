@@ -5,6 +5,7 @@ use advent_of_code::*;
 
 advent_of_code::solution!(6);
 
+#[allow(clippy::needless_range_loop)]
 pub fn part_one(input: &str) -> Option<u64> {
     let lines = get_lines(input);
 
@@ -35,6 +36,7 @@ pub fn part_one(input: &str) -> Option<u64> {
     Some(results.iter().sum())
 }
 
+#[allow(clippy::needless_range_loop)]
 pub fn part_two(input: &str) -> Option<u64> {
     let lines = get_lines(input);
 
