@@ -158,21 +158,20 @@ fn fill_polygon(location: (i64, i64), tiles_covered: &mut Vec<Vec<u8>>) {
     let mut queue: VecDeque<(i64, i64)> = VecDeque::new();
     queue.push_back(location);
 
-    while let Some((x, y)) = queue.pop_front() {
+    tiles_covered[location.0 as usize][location.1 as usize] = 1;
 
-        let x_usize = x as usize;
-        let y_usize = y as usize;
+    let neighbors: [(i64, i64); 4] = [(0, 1), (0, -1), (1, 0), (-1, 0)];
 
-        if tiles_covered[x_usize][y_usize] != 0 {
-            continue;
+    while let Some((cx, cy)) = queue.pop_front() {
+        for &(dx, dy) in neighbors.iter() {
+            let nx = cx + dx;
+            let ny = cy + dy;
+
+            if tiles_covered[ny as usize][nx as usize] == 0 {
+                tiles_covered[ny as usize][nx as usize] = 1;
+                queue.push_back((nx, ny));
+            }
         }
-
-        tiles_covered[x_usize][y_usize] = 2;
-
-        queue.push_back((x + 1, y));
-        queue.push_back((x - 1, y));
-        queue.push_back((x, y + 1));
-        queue.push_back((x, y - 1));
     }
 }
 
