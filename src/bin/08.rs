@@ -45,7 +45,13 @@ pub fn part_one(input: &str) -> Option<u64> {
     let mut parent: Vec<usize> = (0..num_points).collect();
     let mut group_size: Vec<usize> = vec![1; num_points];
 
-    for &(_, u, v) in edges.iter().take(1000) {
+    let max_edges_limit = if cfg!(test) {
+        10
+    } else {
+        1000
+    };
+
+    for &(_, u, v) in edges.iter().take(max_edges_limit) {
         let root_u = find(&mut parent, u);
         let root_v = find(&mut parent, v);
 
