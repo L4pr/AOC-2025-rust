@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 
 use std::cmp::{max, min};
-use std::collections::VecDeque;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::path::absolute;
 use advent_of_code::*;
 
@@ -23,55 +23,64 @@ pub fn part_one(input: &str) -> Option<u64> {
 
 pub fn part_two(input: &str) -> Option<u64> {
     let tiles = input.lines().map(|line| line.split(',').map(|n| n.parse::<i64>().unwrap()).collect_tuple::<(i64, i64)>().unwrap()).collect_vec();
-    let max_x = tiles.iter().map(|t| t.0).max().unwrap();
-    let max_y = tiles.iter().map(|t| t.1).max().unwrap();
-    let mut tiles_covered: Vec<Vec<u8>> = vec![vec![0; (max_y + 2) as usize]; (max_x + 2) as usize];
-    for i in 0..tiles.len() {
+    let x_max = tiles.iter().map(|(x, _)| x).max().unwrap();
+    let y_max = tiles.iter().map(|(_, y)| y).max().unwrap();
+    let mut x_coords: HashSet<i64> = HashSet::new();
+    let mut y_coords: HashSet<i64> = HashSet::new();
+    x_coords.insert(0);
+    y_coords.insert(0);
+    for &(x, y) in tiles.iter() {
+        x_coords.insert(x);
+        y_coords.insert(y);
+    }
+
+    x_coords.insert(x_max + 1);
+    y_coords.insert(y_max + 1);
+
+    let sorted_x: Vec<i64> = x_coords.into_iter().sorted().collect();
+    let sorted_y: Vec<i64> = y_coords.into_iter().sorted().collect();
+
+    let x_map: HashMap<i64, usize> = sorted_x.into_iter().enumerate().map(|(i, x)| (x, i)).collect();
+    let y_map: HashMap<i64, usize> = sorted_y.into_iter().enumerate().map(|(i, y)| (y, i)).collect();
+
+    let mut compressed_grid: Vec<Vec<u8>> = vec![vec![0; y_map.len()]; x_map.len()];
+
+    let num_tiles = tiles.len();
+    for i in 0..num_tiles {
         let tile1 = tiles[i];
         let tile2 = tiles[(i + 1) % tiles.len()];
+
         let (x1, y1) = tile1;
         let (x2, y2) = tile2;
 
         let (x_min, x_max) = (min(x1, x2), max(x1, x2));
         let (y_min, y_max) = (min(y1, y2), max(y1, y2));
 
-        for x in x_min..=x_max {
-            for y in y_min..=y_max {
-                tiles_covered[x as usize][y as usize] = 1;
-            }
-        }
-    }
-    let mut start_tile_filling = (0, max_y / 2);
-    for i in 0..max_x {
-        if tiles_covered[i as usize][start_tile_filling.1 as usize] == 0 {
-            let mut edge_hits = 0;
-            for mut j in i..max_x + 1 {
-                let is_boundary_tile = tiles_covered[j as usize][start_tile_filling.1 as usize] == 1;
-                if is_boundary_tile {
-                    let neighbor = tiles_covered[j as usize - 1][(start_tile_filling.1) as usize];
+        if y1 == y2 {
+            let y_idx = *y_map.get(&y1).unwrap();
+            let x_idx_min = *x_map.get(&x_min).unwrap();
+            let x_idx_max = *x_map.get(&x_max).unwrap();
 
-                    if neighbor == 0 {
-                        edge_hits += 1;
-                    }
-                    while j < max_x && tiles_covered[j as usize][start_tile_filling.1 as usize] == 1 {
-                        j += 1;
-                    }
-                }
-            }
-            if edge_hits % 2 == 1 {
-                start_tile_filling.0 = i;
-                break;
-            }
+            (x_idx_min..=x_idx_max).for_each(|x_idx| {
+                compressed_grid[x_idx][y_idx] = 1;
+            });
+        }
+        else if x1 == x2 {
+            let x_idx = *x_map.get(&x1).unwrap();
+            let y_idx_min = *y_map.get(&y_min).unwrap();
+            let y_idx_max = *y_map.get(&y_max).unwrap();
+
+            (y_idx_min..=y_idx_max).for_each(|y_idx| {
+                compressed_grid[x_idx][y_idx] = 1;
+            });
         }
     }
-    fill_polygon(start_tile_filling, &mut tiles_covered);
-    println!("filled");
+    fill_polygon((0,0), &mut compressed_grid);
     let mut largest_size = 0;
     for i in 0..tiles.len() {
-        println!("i: {}", i);
         for j in i + 1..tiles.len() {
             let size = ((tiles[i].0 - tiles[j].0).abs() + 1) * ((tiles[i].1 - tiles[j].1).abs() + 1);
-            if size > largest_size && is_inside_polygon(tiles[i], tiles[j], &tiles_covered) {
+            if size > largest_size && is_inside_polygon(tiles[i], tiles[j], &compressed_grid, &x_map, &y_map) {
                 largest_size = size;
             }
         }
@@ -79,74 +88,19 @@ pub fn part_two(input: &str) -> Option<u64> {
     Some(largest_size as u64)
 }
 
-fn is_inside_polygon(tile1: (i64, i64), tile2: (i64, i64), tiles_covered: &Vec<Vec<u8>>) -> bool {
-    if tile1.0 < tile2.0 {
-        if tile1.1 < tile2.1 {
-            for k in tile1.0..=tile2.0 {
-                if tiles_covered[k as usize][tile1.1 as usize] == 0 {
-                    return false;
-                }
-                if tiles_covered[k as usize][tile2.1 as usize] == 0 {
-                    return false;
-                }
-            }
-            for k in tile1.1..=tile2.1 {
-                if tiles_covered[tile1.0 as usize][k as usize] == 0 {
-                    return false;
-                }
-                if tiles_covered[tile2.0 as usize][k as usize] == 0 {
-                    return false;
-                }
-            }
-        } else {
-            for k in tile1.0..=tile2.0 {
-                if tiles_covered[k as usize][tile1.1 as usize] == 0 {
-                    return false;
-                }
-                if tiles_covered[k as usize][tile2.1 as usize] == 0 {
-                    return false;
-                }
-            }
-            for k in tile2.1..=tile1.1 {
-                if tiles_covered[tile1.0 as usize][k as usize] == 0 {
-                    return false;
-                }
-                if tiles_covered[tile2.0 as usize][k as usize] == 0 {
-                    return false;
-                }
-            }
-        }
-    } else if tile1.1 < tile2.1 {
-        for k in tile2.0..=tile1.0 {
-            if tiles_covered[k as usize][tile1.1 as usize] == 0 {
-                return false;
-            }
-            if tiles_covered[k as usize][tile2.1 as usize] == 0 {
-                return false;
-            }
-        }
-        for k in tile1.1..=tile2.1 {
-            if tiles_covered[tile1.0 as usize][k as usize] == 0 {
-                return false;
-            }
-            if tiles_covered[tile2.0 as usize][k as usize] == 0 {
-                return false;
-            }
-        }
-    } else {
-        for k in tile2.0..=tile1.0 {
-            if tiles_covered[k as usize][tile1.1 as usize] == 0 {
-                return false;
-            }
-            if tiles_covered[k as usize][tile2.1 as usize] == 0 {
-                return false;
-            }
-        }
-        for k in tile2.1..=tile1.1 {
-            if tiles_covered[tile1.0 as usize][k as usize] == 0 {
-                return false;
-            }
-            if tiles_covered[tile2.0 as usize][k as usize] == 0 {
+#[inline(always)]
+fn is_inside_polygon(tile1: (i64, i64), tile2: (i64, i64), tiles_covered: &Vec<Vec<u8>>, x_map: &HashMap<i64, usize>, y_map: &HashMap<i64, usize>) -> bool {
+    let (x1, y1) = tile1;
+    let (x2, y2) = tile2;
+
+    let x_min = *x_map.get(&min(x1, x2)).unwrap();
+    let x_max = *x_map.get(&max(x1, x2)).unwrap();
+    let y_min = *y_map.get(&min(y1, y2)).unwrap();
+    let y_max = *y_map.get(&max(y1, y2)).unwrap();
+
+    for y_axis in tiles_covered.iter().take(x_max + 1).skip(x_min) {
+        for &value in y_axis.iter().take(y_max + 1).skip(y_min) {
+            if value == 2 {
                 return false;
             }
         }
@@ -154,48 +108,30 @@ fn is_inside_polygon(tile1: (i64, i64), tile2: (i64, i64), tiles_covered: &Vec<V
     true
 }
 
-fn fill_polygon(location: (i64, i64), tiles_covered: &mut Vec<Vec<u8>>) {
-    let mut queue: VecDeque<(i64, i64)> = VecDeque::new();
+fn fill_polygon(location: (usize, usize), tiles_covered: &mut Vec<Vec<u8>>) {
+    let mx = tiles_covered.len();
+    let my = tiles_covered[0].len();
+
+    let mut queue: VecDeque<(usize, usize)> = VecDeque::new();
     queue.push_back(location);
 
-    tiles_covered[location.0 as usize][location.1 as usize] = 1;
+    if tiles_covered[location.0][location.1] == 0 {
+        tiles_covered[location.0][location.1] = 2;
+    }
 
-    let neighbors: [(i64, i64); 4] = [(0, 1), (0, -1), (1, 0), (-1, 0)];
+    let neighbors: [(isize, isize); 4] = [(0, 1), (0, -1), (1, 0), (-1, 0)];
 
     while let Some((cx, cy)) = queue.pop_front() {
         for &(dx, dy) in neighbors.iter() {
-            let nx = cx + dx;
-            let ny = cy + dy;
+            let nx = (cx as isize + dx) as usize;
+            let ny = (cy as isize + dy) as usize;
 
-            if tiles_covered[ny as usize][nx as usize] == 0 {
-                tiles_covered[ny as usize][nx as usize] = 1;
+            if nx < mx && ny < my && tiles_covered[nx][ny] == 0 {
+                tiles_covered[nx][ny] = 2;
                 queue.push_back((nx, ny));
             }
         }
     }
-}
-
-fn print_grid_pretty(grid: &Vec<Vec<u8>>) {
-    println!("\n--- Corrected Grid Map (Rows = Y, Cols = X) ---");
-
-    let max_x = grid.len();
-    if max_x == 0 { return; }
-    let max_y = grid[0].len();
-
-    for y in 0..max_y {
-        let mut line = String::new();
-        for x in 0..max_x {
-
-            let char_to_print = match grid[x][y] {
-                1 => '#',
-                0 => '.',
-                _ => '?',
-            };
-            line.push(char_to_print);
-        }
-        println!("{}", line);
-    }
-    println!("----------------------------------------------\n");
 }
 
 #[cfg(test)]
