@@ -86,7 +86,7 @@ mod tests {
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
+        let result = part_two(&advent_of_code::template::read_file_part("examples", DAY, 2));
         assert_eq!(result, Some(2));
     }
 }
