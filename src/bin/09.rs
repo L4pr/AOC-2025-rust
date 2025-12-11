@@ -89,7 +89,7 @@ pub fn part_two(input: &str) -> Option<u64> {
 }
 
 #[inline(always)]
-fn is_inside_polygon(tile1: (i64, i64), tile2: (i64, i64), tiles_covered: &Vec<Vec<u8>>, x_map: &HashMap<i64, usize>, y_map: &HashMap<i64, usize>) -> bool {
+fn is_inside_polygon(tile1: (i64, i64), tile2: (i64, i64), tiles_covered: &[Vec<u8>], x_map: &HashMap<i64, usize>, y_map: &HashMap<i64, usize>) -> bool {
     let (x1, y1) = tile1;
     let (x2, y2) = tile2;
 
@@ -108,7 +108,7 @@ fn is_inside_polygon(tile1: (i64, i64), tile2: (i64, i64), tiles_covered: &Vec<V
     true
 }
 
-fn fill_polygon(location: (usize, usize), tiles_covered: &mut Vec<Vec<u8>>) {
+fn fill_polygon(location: (usize, usize), tiles_covered: &mut [Vec<u8>]) {
     let mx = tiles_covered.len();
     let my = tiles_covered[0].len();
 
