@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 
 use std::cmp::Ordering;
-use std::collections::{BinaryHeap, HashSet};
+use std::collections::{BinaryHeap, HashSet, VecDeque};
 use good_lp::{default_solver, variable, variables, Expression, Solution, SolverModel};
 use regex::Regex;
 use advent_of_code::*;
@@ -27,45 +27,58 @@ impl PartialOrd for StateLights {
     }
 }
 
+#[allow(clippy::explicit_counter_loop)]
 pub fn part_one(input: &str) -> Option<u64> {
     let lines = input.lines();
     let mut result = 0;
+
+    let mut visited: Vec<u32> = vec![0; 1 << 20];
+    let mut generation: u32 = 0;
+
     for line in lines {
+        generation += 1;
+
         let first_split: (&str, &str)  = line.split("] ").collect_tuple().unwrap();
-        let mut goal_lights: u64 = 0;
-        first_split.0.as_bytes().iter().skip(1).rev().for_each(|&byte| {
+        let mut goal_lights: u32 = 0;
+        for &byte in first_split.0.as_bytes().iter().skip(1).rev() {
             goal_lights <<= 1;
             if byte == b'#' {
-                goal_lights += 1;
+                goal_lights |= 1;
             }
-        });
+        }
         let masks = first_split.1
             .split_ascii_whitespace()
             .rev()
             .skip(1)
             .map(|change| {
-                let mut mask: u64 = 0;
-                change.as_bytes().iter().skip(1).rev().skip(1).for_each(|&byte| {
-                    if byte != b',' {
-                        mask += 1 << (byte - b'0');
+                let mut mask: u32 = 0;
+                let bytes = change.as_bytes();
+                let inner = &bytes[1..bytes.len() - 1];
+                for &b in inner {
+                    if b != b',' {
+                        mask += 1 << (b - b'0');
                     }
-                });
+                }
                 mask
             })
             .collect_vec();
-        let mut priority_queue: BinaryHeap<StateLights> = BinaryHeap::new();
-        priority_queue.push(StateLights {cost: 0, lights: 0});
-        let mut positions_been: HashSet<u64> = HashSet::new();
-        while let Some(state) = priority_queue.pop() {
-            if state.lights == goal_lights {
-                result += state.cost;
+        let mut deque: VecDeque<(u32, u32)> = VecDeque::new();
+        visited[0] = generation;
+        deque.push_back((0, 0));
+        while let Some((cost, lights)) = deque.pop_front() {
+            if lights == goal_lights {
+                result += cost as u64;
                 break;
             }
-            if !positions_been.insert(state.lights) {
-                continue;
-            }
+            let next_cost = cost + 1;
             masks.iter().for_each(|&mask| {
-                priority_queue.push(StateLights {cost: state.cost + 1, lights: state.lights ^ mask});
+                let next_state = lights ^ mask;
+                let idx = next_state as usize;
+
+                if visited[idx] != generation {
+                    visited[idx] = generation;
+                    deque.push_back((next_cost, next_state));
+                }
             })
         }
     }
