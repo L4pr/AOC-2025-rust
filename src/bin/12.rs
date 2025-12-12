@@ -7,6 +7,73 @@ use advent_of_code::*;
 
 advent_of_code::solution!(12);
 
+#[inline(always)]
+fn count_hashes(bytes: &[u8]) -> usize {
+    let mut c = 0_usize;
+    for &b in bytes {
+        c += (b == b'#') as usize;
+    }
+    c
+}
+
+#[allow(clippy::needless_range_loop)]
+pub fn part_one(input: &str) -> Option<u64> {
+    let mut parts = input.split("\n\n");
+    let mut sizes = [0usize; 6];
+
+    for i in 0..6 {
+        if let Some(part) = parts.next() {
+            sizes[i] = count_hashes(part.as_bytes());
+        }
+    }
+    let mut result =  0;
+
+    for line in parts.next()?.lines() {
+        let b = line.as_bytes();
+        let len = b.len();
+        let mut cursor = 0;
+
+        let mut w = 0;
+        while cursor < len && b[cursor].is_ascii_digit() {
+            w = w * 10 + (b[cursor] - b'0') as usize;
+            cursor += 1;
+        }
+        cursor += 1;
+
+        let mut h = 0;
+        while cursor < len && b[cursor].is_ascii_digit() {
+            h = h * 10 + (b[cursor] - b'0') as usize;
+            cursor += 1;
+        }
+        cursor += 2;
+
+        let total_size = w * h;
+
+        let mut needed_size = 0;
+        let mut size_idx = 0;
+        let mut current_num = 0;
+
+        while cursor < len {
+            let byte = b[cursor];
+            if byte == b' ' {
+                needed_size += current_num * sizes[size_idx];
+                size_idx += 1;
+                current_num = 0;
+            } else {
+                current_num = current_num * 10 + (byte - b'0') as usize;
+            }
+            cursor += 1;
+        }
+        needed_size += current_num * sizes[size_idx];
+
+        if needed_size < total_size {
+            result += 1;
+        }
+    }
+    Some(result)
+}
+
+
 #[derive(Clone, Debug)]
 struct RawShape {
     id: usize,
@@ -194,7 +261,7 @@ fn solve_part_one_recursive(
     false
 }
 
-pub fn part_one(input: &str) -> Option<u64> {
+pub fn part_one_original(input: &str) -> Option<u64> {
     let (raw_shapes, queries) = parse_input(input);
 
     let mut all_variants = vec![Vec::new(); raw_shapes.len()];
@@ -246,7 +313,7 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let result = part_one(&advent_of_code::template::read_file("examples", DAY));
+        let result = part_one_original(&advent_of_code::template::read_file("examples", DAY));
         assert_eq!(result, Some(2));
     }
 
